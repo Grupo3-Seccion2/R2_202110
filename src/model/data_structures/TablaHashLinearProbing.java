@@ -5,12 +5,14 @@ public class TablaHashLinearProbing<K extends Comparable<K>, V extends Comparabl
 	private ILista<NodoTS<K,V>> listaNodos;
 	private int tamanoTabla;
 	private int tamanoActual;
+	private double factorCarga;
 	
-	public TablaHashLinearProbing(int tamanoInicial) 
+	public TablaHashLinearProbing(int tamanoInicial, double factorCarga) 
 	{
 		tamanoTabla =  tamanoInicial;
 		listaNodos = new ArregloDinamico<>(nextPrime(tamanoTabla));
 		tamanoActual = 0;
+		this.factorCarga= factorCarga;
 		
 		for(int i = 1; i<= tamanoTabla;i++)
 		{
@@ -21,14 +23,22 @@ public class TablaHashLinearProbing<K extends Comparable<K>, V extends Comparabl
 	@Override
 	public void put(K key, V value) 
 	{
-		int posicion = hash(key);
-		NodoTS<K,V> nodo = listaNodos.getElement(posicion);
-		if(nodo != null && !nodo.isEmpty())
+		if(tamanoActual/tamanoTabla>=factorCarga)
 		{
-			posicion = getNextEmpty(posicion);
+			rehash();
+			put(key,value);
 		}
-		listaNodos.changeElement(posicion, new NodoTS<>(key, value));
-		tamanoActual ++;
+		else
+		{
+			int posicion = hash(key);
+			NodoTS<K,V> nodo = listaNodos.getElement(posicion);
+			if(nodo != null && !nodo.isEmpty())
+			{
+				posicion = getNextEmpty(posicion);
+			}
+			listaNodos.changeElement(posicion, new NodoTS<>(key, value));
+			tamanoActual ++;
+		}
 	}
 
 	@Override
@@ -246,6 +256,10 @@ public class TablaHashLinearProbing<K extends Comparable<K>, V extends Comparabl
 		return nodos;
 	}
 
+	public ILista<NodoTS<K,V>> darListaNodos()
+	{
+		return listaNodos;
+	}
    //Funciones para calcular el siguiente primo
 
     static boolean isPrime(int n)

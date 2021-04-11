@@ -147,6 +147,7 @@ public class TablaHashSeparateChaining<K extends Comparable<K>, V  extends Compa
 	 //Rehash
 	private void rehash()
 	{
+		System.out.println("Rehash");
 		ILista<NodoTS<K,V>> nodos = darNodos();
 		tamanoActual = 0;
 		tamanoTabla = nextPrime(tamanoTabla);

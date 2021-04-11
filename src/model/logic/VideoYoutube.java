@@ -202,8 +202,9 @@ public class VideoYoutube implements Comparable<VideoYoutube>
 	}
 	public String requerimiento1()
 	{
-		
-		String mensaje = "    "+title+"      "+views+"    "+likes+"    "+dislikes;
+		SimpleDateFormat sdf = new SimpleDateFormat("yy.dd.MM");
+		String  trendingdate= sdf.format(trendingDate);
+		String mensaje = trendingdate+"    "+title+"    "+channel+"    "+publishDate+"    "+views+"    "+likes+"    "+dislikes;
 		return mensaje;
 	}
 	public String requerimiento4()

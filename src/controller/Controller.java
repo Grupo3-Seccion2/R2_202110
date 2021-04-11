@@ -28,7 +28,7 @@ public class Controller {
 	 */
 	public Controller ()
 	{
-		modelo = new Modelo(200,5);
+		modelo = new Modelo(100,5);
 		view = new View();
 		
 	}
@@ -38,26 +38,12 @@ public class Controller {
 		Scanner lector = new Scanner(System.in);
 		boolean fin = false;
 		ILista<Categoria> categorias = modelo.darCategorias();
-		view.printMenu();
+		
 		while( !fin ){
-			
+			view.printMenu();
 			int option = lector.nextInt();
 			switch(option){
 				case 1:
-					view.printMessage("Si desea cargar los datos en las dos tablas de Hash ingrese 1: ");
-					int carga = lector.nextInt();
-					if(carga ==1)
-						try
-						{
-							modelo.cargarDatosTablaSC();
-							modelo.cargarDatosTablaLP();
-						}
-						catch(Exception e)
-						{
-							e.printStackTrace();
-						}
-					break;
-				case 2:
 					view.printMessage("Para poder realizar el requerimiento es necesario que ingrese la siguiente informacion: \n  - Nombre del pais:");
 					String pais = lector.next();
 					view.printMessage("-Nombre de la categoria:\n Recuerde que las categorias son:");
@@ -68,29 +54,49 @@ public class Controller {
 					}
 						
 					String categoria = lector.next();
-					ILista<VideoYoutube> buscados =modelo.requerimientoLP(pais, categoria);
-					view.printReq(buscados);
+					view.printMessage("-Cantidad de elementos a listar:");
+					int n = lector.nextInt();
+					ILista<VideoYoutube> buscados = modelo.requerimiento1(pais, categoria, n);
+					view.printReq1(buscados);
+					break;
+
+				case 2:
+					view.printMessage("Para poder realizar el requerimiento es necesario que ingrese la siguiente informacion: \n  - Nombre del pais:");
+
+				
+					String pais1 = lector.next();
+					VideoYoutube buscado = modelo.requerimiento2(pais1);
+					
+					String pais2 = lector.next();
+					VideoYoutube buscadoP = modelo.requerimiento2(pais2);
+					view.printReq2(buscadoP);
+
 					break;
 
 				case 3:
-					view.printMessage("Para poder realizar el requerimiento es necesario que ingrese la siguiente informacion: \n  - Nombre del pais:");
-					pais = lector.next();
-					view.printMessage("-Nombre de la categoria:\n Recuerde que las categorias son:");
-					
+
+					view.printMessage("Para poder realizar el requerimiento es necesario que ingrese la siguiente informacion: \n  - Nombre de la categoria:");
+				
 					for(int i = 1; i<=categorias.size();i++)
 					{
 						System.out.println(categorias.getElement(i).toString());
 					}
-					categoria = lector.next();
-					buscados =modelo.requerimientoSC(pais, categoria);
-					view.printReq(buscados);
+					String cat = lector.next();
+					VideoYoutube buscadoC = modelo.requerimiento3(cat);
+					view.printReq3(buscadoC);
 					break;
+				
 				case 4:
-					long promedioSC = modelo.pruebaMetodoGetSC();
-					view.printMessage("El tiempo promedio del metodo get(K) en la tabla con manejo de colisiones con SC en milisegundos fue de:  "+promedioSC);
-					long promedioLP = modelo.pruebaMetodoGetLP();
-					view.printMessage("El tiempo promedio del metodo get(K) en la tabla con manejo de colisiones con LP en milisegundos fue de:  "+promedioLP);
+					view.printMessage("-Cantidad de elementos a listar:");
+					int n4 = lector.nextInt();
+					view.printMessage("-Tag de interes:");
+					String tag= lector.next();
+					ILista<VideoYoutube> buscadosT = modelo.requerimiento4(tag, n4);
+					System.out.println("Acabo");
+					view.printReq4(buscadosT);
 					break;
+	
+				
 				case 5: 
 					view.printMessage("--------- \n Hasta pronto !! \n---------"); 
 					lector.close();
@@ -103,6 +109,7 @@ public class Controller {
 					break;
 			}
 		}
+
 		
 	}
 }

@@ -46,11 +46,12 @@ public class Modelo <T extends Comparable<T>>
 	public Modelo(int tamanoInicial, int factorCarga)
 	{
 		videosTablaSC = new TablaHashSeparateChaining<String, ILista<VideoYoutube>>(tamanoInicial, factorCarga);
-		videosTablaLP = new TablaHashLinearProbing<String,ILista<VideoYoutube>>(tamanoInicial);
+		
 		categoriaArreglo= new ArregloDinamico<>(50);
 		try 
 		{
 			cargarDatosArregloCat();
+			cargarDatosTablaSC();
 			
 		}
 		catch (Exception e)
@@ -130,10 +131,9 @@ public class Modelo <T extends Comparable<T>>
 		VideoYoutube video = null;
 		SimpleDateFormat format = new SimpleDateFormat("yyyy.dd.MM");
 		SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		long tiempototal= 0;
 		try
 		{
-			Reader in = new FileReader("./data/videos-small.csv");
+			Reader in = new FileReader("./data/videos-all.csv");
 			Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
 			int i = 0;
 			for(CSVRecord record : records)
@@ -152,47 +152,40 @@ public class Modelo <T extends Comparable<T>>
 						
 				video = new VideoYoutube(id, trending, title, channel, categoryId, publishDate, tags, views, likes, dislikes, country);
 				String categoria = darNombreSegunIdCategoria(categoryId);
-				String llave = (country+categoria).toLowerCase();
+				String llave = (categoria).toLowerCase();
 				
-				
-				long start = 0;
-				long stop = 0;
+			
 				
 				ILista<VideoYoutube> valoresActuales = videosTablaSC.get(llave);
 				if(valoresActuales != null)
 				{
-					 boolean esta = false;
-					 for(int j= 1; j<= valoresActuales.size()&& !esta;j++)
-					 {
-						 if(valoresActuales.getElement(j).getTitle().compareToIgnoreCase(title) == 0)
-						 {
-							 esta = true;
-						 }
-					 }
-					 if(!esta)
-					 {
-						 valoresActuales.addLast(video);
-						 videosTablaSC.changeValue(llave, valoresActuales); 
-						 i++;
-					 }
+					//boolean encontroPrimero = false;
+					//for(int j = 1;j<= valoresActuales.size() && !encontroPrimero;j++)
+					//{
+					//	VideoYoutube actual = valoresActuales.getElement(j);
+					//	if(actual.compareTo(video)==0)
+					//	{
+					//		encontroPrimero = true;
+					//		actual.setTrendingDays(actual.getTrendingDays()+1);
+					//	}
+					//}
+					valoresActuales.addLast(video);
+					videosTablaSC.changeValue(llave, valoresActuales);
+					i++;
 					
 				}
 				else
 				{
 					valoresActuales = new ArregloDinamico<>(10);
 					valoresActuales.addLast(video);
-					start = System.currentTimeMillis();
 					videosTablaSC.put(llave, valoresActuales);
-					stop = System.currentTimeMillis();
 					i++;
 				}
-				tiempototal += (stop-start);
-				
+			
 			}
 			
 			System.out.println("Datos cargados \n "+ "Totalidad de videos: "+i);
 			System.out.println("Totalidad de duplas en la tabla de hash con separate Chaining: "+ videosTablaSC.size());
-			System.out.println("Promedio del metodo put en milisegundos en la tabla de hash con separate Chaining: "+(tiempototal/(i-1)));
 		}
 		catch (IOException e) 
 		{
@@ -201,84 +194,6 @@ public class Modelo <T extends Comparable<T>>
 		}
 	}
 	
-	/**
-	 * Metodo que carga los datos de los videos como una Tabla de hash con manejo de colisiones con Linear Probing que  desde un archivo csv 
-	 */
-	public void cargarDatosTablaLP() throws NumberFormatException, ParseException
-	{
-		VideoYoutube video = null;
-		SimpleDateFormat format = new SimpleDateFormat("yyyy.dd.MM");
-		SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		long tiempototal= 0;
-		try
-		{
-			Reader in = new FileReader("./data/videos-small.csv");
-			Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
-			int i = 0;
-			for(CSVRecord record : records)
-			{
-				String id = record.get(0);
-				Date trending = format.parse(record.get(1));
-				String title = record.get(2);
-				String channel = record.get(3);
-				int categoryId = Integer.parseInt(record.get(4));
-				Date publishDate = format2.parse(record.get(5));
-				String tags = record.get(6);
-				int views = Integer.parseInt(record.get(7));
-				int likes = Integer.parseInt(record.get(8));
-				int dislikes = Integer.parseInt(record.get(9));
-				String country = record.get(16);
-						
-				video = new VideoYoutube(id, trending, title, channel, categoryId, publishDate, tags, views, likes, dislikes, country);
-				String categoria = darNombreSegunIdCategoria(categoryId);
-				String llave = (country+categoria).toLowerCase();
-				
-				
-				long start = 0;
-				long stop = 0;
-				
-				ILista<VideoYoutube> valoresActuales = videosTablaLP.get(llave);
-				if(valoresActuales != null)
-				{
-					 boolean esta = false;
-					 for(int j= 1; j<= valoresActuales.size()&& !esta;j++)
-					 {
-						 if(valoresActuales.getElement(j).getTitle().compareToIgnoreCase(title) == 0)
-						 {
-							 esta = true;
-						 }
-					 }
-					 if(!esta)
-					 {
-						 valoresActuales.addLast(video);
-						 videosTablaLP.changeValue(llave, valoresActuales); 
-						 i++;
-					 }
-					
-				}
-				else
-				{
-					valoresActuales = new ArregloDinamico<>(10);
-					valoresActuales.addLast(video);
-					start = System.currentTimeMillis();
-					videosTablaLP.put(llave, valoresActuales);
-					stop = System.currentTimeMillis();
-					i++;
-				}
-				tiempototal += (stop-start);
-				
-			}
-			
-			System.out.println("Datos cargados \n "+ "Totalidad de videos: "+i);
-			System.out.println("Totalidad de duplas en la tabla de hash con linear Probing: "+ videosTablaLP.size());
-			System.out.println("Promedio del metodo put en milisegundos en la tabla de hash con linear Probing: "+(tiempototal/(i-1)));
-		}
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-			System.out.println("No se encontro el archivo para cargar los datos");
-		}
-	}
 	
 	
 	/**
@@ -305,92 +220,160 @@ public class Modelo <T extends Comparable<T>>
 			System.out.println("No se encontro el archivo para cargar los datos");
 		}
 	}
-
 	//-----------------------------------------------------
 	//Requerimientos 
 	//-----------------------------------------------------
 	
-	public ILista<VideoYoutube> requerimientoLP(String country, String category)
+	/**
+	 *  Metodo que busca los n videos con mas views de una categoria especifica con un pais dado
+	 * @pre la lista de videos no debe estar vacia
+	 * @param String country. nombre del pais que se quiere los videos con mas likes
+	 * @param String categoryName. nombre de la categoria especifica
+	 * @param int n. numero de videos que se quieren listar
+	 * @return Lista de videos que cumplen con las condiciones del requerimiento
+	 */
+	public ILista<VideoYoutube> requerimiento1(String country, String categoryName, int n )
 	{
-		return videosTablaLP.get(country+category);
-	}
+		ILista<VideoYoutube> videosPorcategoria = videosTablaSC.get(categoryName);
+		ILista<VideoYoutube> subLista = new ArregloDinamico<VideoYoutube>(n);
+		Ordenamiento<VideoYoutube> algsOrdenamientoVideos = new Ordenamiento<VideoYoutube>(); 
+		
+		Comparator<VideoYoutube> comparador = new VideoYoutube.ComparadorXViews(); 
 	
-	public ILista<VideoYoutube> requerimientoSC(String country, String category)
-	{
-		return videosTablaSC.get(country+category);
-	}
-	
-	public long pruebaMetodoGetSC()
-	{
-		long total = 0;
-		String[] paises =new String[5];
-		paises[0] ="canada";
-		paises[1]="france";
-		paises[2]="india";
-		paises[3]="germany";
-		paises[4]="japan";
-		for(int i=0;i<1000;i++)
+		algsOrdenamientoVideos.ordenarShell(videosPorcategoria, comparador,false);
+		boolean termino = false;
+		int c = 0;
+		for(int i = 1; i <= videosPorcategoria.size()&& !termino;i++)
 		{
-			long start = 0;
-			long stop = 0;
-			if (i <700)
+			if (c >=n)
 			{
-				int n1 = (int) (Math.random()*5);
-				int n2 = (int)(Math.random()*(31)+1);
-				String llave = (paises[n1] + categoriaArreglo.getElement(n2).darNombre()).toLowerCase();
-				start = System.currentTimeMillis();
-				videosTablaSC.get(llave);
-				stop = System.currentTimeMillis();
-				
+				termino = true;	
 			}
 			else
 			{
-				int n2 = (int)(Math.random()*(31)+1);
-				String llave = ("lakaaiaana" + categoriaArreglo.getElement(n2).darNombre()).toLowerCase();
-				
-				start = System.currentTimeMillis();
-				videosTablaSC.get(llave);
-				stop = System.currentTimeMillis();
+				if(videosPorcategoria.getElement(i).getCountry().compareToIgnoreCase(country)==0)
+				{
+						c++;
+						subLista.addLast(videosPorcategoria.getElement(i));
+					
+				}
 			}
-			total += (stop-start);
 		}
-		return(total);
+		
+		return subLista;
+		
+		
 	}
 	
-	public long pruebaMetodoGetLP()
+	/**
+	 * Busca el video con mas dias como tendencia dado un pais que entra como parametro
+	 * @pre la lista de videos no debe estar vacia
+	 * @param String country
+	 * @return video con mas dias como tendencia
+	 */
+	public VideoYoutube requerimiento2(String country)
 	{
-		long total = 0;
-		String[] paises =new String[5];
-		paises[0] ="canada";
-		paises[1]="france";
-		paises[2]="india";
-		paises[3]="germany";
-		paises[4]="japan";
-		for(int i=0;i<1000;i++)
-		{
-			long start = 0;
-			long stop = 0;
-			if (i <700)
-			{
-				int n1 = (int) (Math.random()*5);
-				int n2 = (int)(Math.random()*(31)+1);
-				String llave = (paises[n1]+categoriaArreglo.getElement(n2).darNombre()).toLowerCase();
-				start = System.currentTimeMillis();
-				videosTablaLP.get(llave);
-				stop = System.currentTimeMillis();
-				
-			}
-			else
-			{
-				int n2 = (int)(Math.random()*(31)+1);
-				String llave = ("lakaaiaana"+categoriaArreglo.getElement(n2).darNombre()).toLowerCase();
-				
-				start = System.currentTimeMillis();
-				videosTablaLP.get(llave);
-				stop = System.currentTimeMillis();
-			}
-			total += (stop-start);
-		}
-		return(total);
+		Comparator<VideoYoutube> comp = new VideoYoutube.ComparadorXPais(); 
+		Ordenamiento<VideoYoutube> algsOrdenamientoVideos = new Ordenamiento<VideoYoutube>(); 
+
+		
+		return null;
 	}
+
+	/**
+	 * Busca el video con mas dias como tendencia dado una categoria que entra como parametro
+	 * @pre la lista de videos no debe estar vacia
+	 * @param String categoryName. nombre de la categoria de la cual se quiere buscar
+	 * @return video con mas dias como tendencia
+	 */
+	public VideoYoutube requerimiento3(String categoryName)
+	{
+		VideoYoutube tendencia = null;
+		ILista<VideoYoutube> videosPorCategoria = videosTablaSC.get(categoryName.toLowerCase());
+		if(videosPorCategoria!=null)
+		{
+			TablaHashLinearProbing<String, ILista<VideoYoutube>> videos = new TablaHashLinearProbing<String,ILista<VideoYoutube>>(videosPorCategoria.size()/2,0.5);
+			for(int i= 1; i<= videosPorCategoria.size();i++)
+			{
+				VideoYoutube actual = videosPorCategoria.getElement(i);
+				String llave = actual.getTitle();
+				ILista<VideoYoutube> valoresActuales = videos.get(llave);
+				if(valoresActuales != null)
+				{
+					valoresActuales.addLast(actual);
+					videos.changeValue(llave, valoresActuales);
+	
+				}
+				else
+				{
+					valoresActuales = new ArregloDinamico<>(10);
+					valoresActuales.addLast(actual);
+					videos.put(llave, valoresActuales);
+				}
+			}
+			int maxNumDias = 0;
+			for(int i = 1; i <=videos.darListaNodos().size();i++)
+			{
+				if(videos.darListaNodos().getElement(i)!= null)
+				{
+					ILista<VideoYoutube> valoresActuales = videos.darListaNodos().getElement(i).getValue();
+					int actNumDias = valoresActuales.size();
+					if(actNumDias>maxNumDias)
+					{
+						maxNumDias = actNumDias;
+						tendencia = valoresActuales.firstElement();
+					}
+				}
+				
+			}
+			tendencia.setTrendingDays(maxNumDias);
+		}
+		return tendencia;
+
+	}
+	
+	/**
+	 *  Metodo que busca los n videos con mas likes de un pais especifico con un tag dado
+	 * @pre la lista de videos no debe estar vacia
+	 * @param String country. nombre del pais que se quiere los videos con mas likes
+	 * @param String tag. tag especifico que se quiere. tag debe ser una subcadena del atributo tags de un video
+	 * @param int n. numero de videos que se quieren listar
+	 * @return Lista de videos que cumplen con las condiciones del requerimiento
+	 */
+	public ILista<VideoYoutube> requerimiento4(String tag, int n )
+	{
+		ILista<VideoYoutube> videosPorTag = new ArregloDinamico<>(10);
+		for(int i = 1; i <= categoriaArreglo.size();i++)
+		{
+			ILista<VideoYoutube> videosPorCategoria = videosTablaSC.get(categoriaArreglo.getElement(i).darNombre().toLowerCase());
+			if(videosPorCategoria != null)
+			{
+				for(int j = 1; j <= videosPorCategoria.size();j++)
+				{
+					VideoYoutube actual = videosPorCategoria.getElement(j);
+					if(actual.getTags().contains(tag))
+					{
+						String[] tags = actual.getTags().split("\\|");
+						for(int k = 0; k <tags.length-1;k++)
+						{
+							if(tags[k].compareToIgnoreCase(tag)==0)
+							{
+								videosPorTag.addLast(actual);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(!videosPorTag.isEmpty())
+		{
+			Ordenamiento<VideoYoutube> algsOrdenamientoVideos = new Ordenamiento<VideoYoutube>(); 
+			Comparator<VideoYoutube> comparador = new VideoYoutube.ComparadorXViews();
+			algsOrdenamientoVideos.ordenarShell(videosPorTag, comparador, false);
+			
+		}
+		return videosPorTag.sublista(n);
+	}
+
 }
