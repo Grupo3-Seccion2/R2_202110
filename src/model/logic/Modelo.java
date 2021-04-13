@@ -273,11 +273,39 @@ public class Modelo <T extends Comparable<T>>
 	 */
 	public VideoYoutube requerimiento2(String country)
 	{
-		Comparator<VideoYoutube> comp = new VideoYoutube.ComparadorXPais(); 
-		Ordenamiento<VideoYoutube> algsOrdenamientoVideos = new Ordenamiento<VideoYoutube>(); 
+		VideoYoutube tend = null;
+		ILista<VideoYoutube> lista = new ArregloDinamico<>(10);
+		for(int i = 1; i < lista.size(); i++)
+		{
+			ILista<VideoYoutube> videosCategoria = videosTablaSC.get(categoriaArreglo.getElement(i).darNombre().toLowerCase());
+			for(int j = 1; j <= videosCategoria.size();j++)
+			{
+				VideoYoutube actual = videosCategoria.getElement(j);
+				if(actual.getCountry().equalsIgnoreCase(country))
+				{
+					lista.addLast(actual);
+				}
 
-		
-		return null;
+			}
+		}
+		if(!lista.isEmpty())
+		{
+			int maxNumDias = 0;
+			for(int i = 1; i <=lista.size();i++)
+			{
+				if(lista.getElement(i)!= null)
+				{
+					int actNumDias = lista.size();
+					if(actNumDias > maxNumDias)
+					{
+						maxNumDias = actNumDias;
+						tend = lista.firstElement();
+					}
+				}
+				tend.setTrendingDays(maxNumDias);
+			}
+		}
+		return tend;
 	}
 
 	/**
