@@ -159,16 +159,6 @@ public class Modelo <T extends Comparable<T>>
 				ILista<VideoYoutube> valoresActuales = videosTablaSC.get(llave);
 				if(valoresActuales != null)
 				{
-					//boolean encontroPrimero = false;
-					//for(int j = 1;j<= valoresActuales.size() && !encontroPrimero;j++)
-					//{
-					//	VideoYoutube actual = valoresActuales.getElement(j);
-					//	if(actual.compareTo(video)==0)
-					//	{
-					//		encontroPrimero = true;
-					//		actual.setTrendingDays(actual.getTrendingDays()+1);
-					//	}
-					//}
 					valoresActuales.addLast(video);
 					videosTablaSC.changeValue(llave, valoresActuales);
 					i++;
@@ -274,37 +264,60 @@ public class Modelo <T extends Comparable<T>>
 	public VideoYoutube requerimiento2(String country)
 	{
 		VideoYoutube tend = null;
-		ILista<VideoYoutube> lista = new ArregloDinamico<>(10);
-		for(int i = 1; i < lista.size(); i++)
+		ILista<VideoYoutube> videosPais= new ArregloDinamico<>(1000);
+		
+		for(int i = 1; i <= categoriaArreglo.size(); i++)
 		{
 			ILista<VideoYoutube> videosCategoria = videosTablaSC.get(categoriaArreglo.getElement(i).darNombre().toLowerCase());
-			for(int j = 1; j <= videosCategoria.size();j++)
+			if(videosCategoria != null)
 			{
-				VideoYoutube actual = videosCategoria.getElement(j);
-				if(actual.getCountry().equalsIgnoreCase(country))
+				for(int j = 1; j <= videosCategoria.size();j++)
 				{
-					lista.addLast(actual);
+					VideoYoutube actual = videosCategoria.getElement(j);
+					if(actual.getCountry().equalsIgnoreCase(country))
+					{
+						videosPais.addLast(actual);
+					}
+	
 				}
+			}
+		}
+		TablaHashLinearProbing<String, ILista<VideoYoutube>> videos = new TablaHashLinearProbing<String,ILista<VideoYoutube>>(videosPais.size(),0.5);
+		for(int i = 1; i<= videosPais.size();i++)
+		{
+			VideoYoutube actual = videosPais.getElement(i);
+			String llave = actual.getTitle();
+			ILista<VideoYoutube> valoresActuales = videos.get(llave);
+			if(valoresActuales != null)
+			{
+				valoresActuales.addLast(actual);
+				videos.changeValue(llave, valoresActuales);
 
 			}
-		}
-		if(!lista.isEmpty())
-		{
-			int maxNumDias = 0;
-			for(int i = 1; i <=lista.size();i++)
+			else
 			{
-				if(lista.getElement(i)!= null)
-				{
-					int actNumDias = lista.size();
-					if(actNumDias > maxNumDias)
-					{
-						maxNumDias = actNumDias;
-						tend = lista.firstElement();
-					}
-				}
-				tend.setTrendingDays(maxNumDias);
+				valoresActuales = new ArregloDinamico<>(10);
+				valoresActuales.addLast(actual);
+				videos.put(llave, valoresActuales);
 			}
 		}
+		
+		int maxNumDias = 0;
+		for(int i = 1; i <=videos.darListaNodos().size();i++)
+		{
+			if(videos.darListaNodos().getElement(i)!= null)
+			{
+				ILista<VideoYoutube> valoresActuales = videos.darListaNodos().getElement(i).getValue();
+				int actNumDias = valoresActuales.size();
+				if(actNumDias>maxNumDias)
+				{
+					maxNumDias = actNumDias;
+					tend = valoresActuales.firstElement();
+				}
+			}
+			
+		}
+		tend.setTrendingDays(maxNumDias);
 		return tend;
 	}
 

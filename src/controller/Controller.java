@@ -67,9 +67,7 @@ public class Controller {
 					String pais1 = lector.next();
 					VideoYoutube buscado = modelo.requerimiento2(pais1);
 					
-					String pais2 = lector.next();
-					VideoYoutube buscadoP = modelo.requerimiento2(pais2);
-					view.printReq2(buscadoP);
+					view.printReq2(buscado);
 
 					break;
 
